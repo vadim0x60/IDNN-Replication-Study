@@ -54,15 +54,19 @@ class BufferedSequential(nn.Module):
         return [param for layer in self.layers for param in layer.parameters()]
         
     def forward(self, x):
+        if not isinstance(x, Variable):
+            if not isinstance(x, torch.Tensor):
+                x = torch.Tensor(x)
+            x = Variable(x)
+
         self.buffer = []
-        o = x
         
         for layer, is_buffered in zip(self.layers, self.buffer_or_not):
-            o = layer(o)
+            x = layer(x)
             if is_buffered:
-                self.buffer.append(o)
+                self.buffer.append(x)
                 
-        return o
+        return x
 
 def mutual_information_for_network_family(infoplane, buffered_networks):
     # Make the mutual information model more 'stochastic' by splitting 
@@ -70,7 +74,7 @@ def mutual_information_for_network_family(infoplane, buffered_networks):
     layer_outputs = [[] for layer in range(np.sum(buffered_networks[0].buffer_or_not))]
     for x in infoplane.X:
         network = np.random.choice(buffered_networks)
-        network(Variable(torch.Tensor(x)))
+        network(x)
         for i, variable in enumerate(network.buffer):
             layer_outputs[i].append(variable.data.numpy())
             
