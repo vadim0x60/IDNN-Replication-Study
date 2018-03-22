@@ -68,6 +68,17 @@ class BufferedSequential(nn.Module):
                 
         return x
 
+class ReshapeLayer(nn.Module):
+    def __init__(self, new_shape):
+        super(ReshapeLayer, self).__init__()
+        self.new_shape = new_shape
+    
+    def parameters(self):
+        return []
+    
+    def forward(self, x):
+        return x.view(self.new_shape)
+
 def mutual_information_for_network_family(infoplane, buffered_networks):
     # Make the mutual information model more 'stochastic' by splitting 
     # the dataset among a family of similar neural networks
